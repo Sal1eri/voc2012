@@ -30,6 +30,10 @@ GPU_ID = args.gpu
 INPUT_WIDTH = 320
 INPUT_HEIGHT = 320
 BATCH_SIZE = 16
+<<<<<<< HEAD
+=======
+
+>>>>>>> bac433f3cd911211acca03c4b75cc8c32624623b
 NUM_CLASSES = 21
 LEARNING_RATE = 1e-3
 epoch = 120
