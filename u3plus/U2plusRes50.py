@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-
+import os
 class VGGBlock(nn.Module):
     def __init__(self, in_channels, middle_channels, out_channels):
         super().__init__()
@@ -122,7 +122,14 @@ class NestedUResnet(nn.Module):
             self.final4 = nn.Conv2d(nb_filter[0], num_classes, kernel_size=1)
         else:
             self.final = nn.Conv2d(nb_filter[0], num_classes, kernel_size=1)
+    def loadIFExist(self, model_path):
+        model_list = os.listdir('./model_result')
 
+        model_pth = os.path.basename(model_path)
+
+        if model_pth in model_list:
+            self.load_state_dict(torch.load(model_path))
+            print("the latest model has been load")
     def _make_layer(self, block, middle_channels, num_blocks, stride):
         strides = [stride] + [1] * (num_blocks - 1)
         layers = []

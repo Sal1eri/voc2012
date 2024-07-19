@@ -22,7 +22,7 @@ from u3plus.UNet_3Plus import UNet_3Plus
 from u3plus.UNet_3Plus import UNet_3Plus_DeepSup
 from u3plus.Qnet import ResNetUNet
 from u3plus.Ues50 import UesNet
-from u3plus.U2plusRes50 import NestedUResnet
+from u3plus.U2plusRes50 import NestedUResnet,BottleNeck
 
 #   引用parser
 from CommandLine.train_parser import get_args_parser

@@ -3,7 +3,7 @@ import argparse
 
 def get_args_parser():
     parser = argparse.ArgumentParser('VOC2012 Train Parser')
-    parser.add_argument('-m', '--model', default='Qnet', type=str, help="input model name",
+    parser.add_argument('-m', '--model', default='Unet2+', type=str, help="input model name",
                         choices=['Unet', 'FCN', 'Deeplab', 'Unet3+', 'Unet3+_Sup','Qnet','PSPnet','Uesnet50','Unet2+']
                         )
     parser.add_argument('--batch_size', '-b', default=4, type=int, help='Batch size for training')
