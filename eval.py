@@ -13,6 +13,8 @@ import time
 
 from model.DeepLab import DeepLabV3
 from u3plus.UNet_3Plus import UNet_3Plus
+from model.PSPnet import PSPNet
+from u3plus.Qnet import ResNetUNet
 
 BATCH_SIZE = 16
 INPUT_WIDTH = 320
@@ -27,11 +29,23 @@ def main():
     val_dataloader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
 
     # model = 'Unet3+'
-    model = 'FCN8x'
-    # model = 'DeepLabV3'
-    net = FCN8x(NUM_CLASSES)
-    # net = DeepLabV3(21)
     # net = UNet_3Plus()
+
+    # model = 'PSPnet'
+    # net = PSPNet(num_classes=NUM_CLASSES)
+
+    # model = 'FCN8x'
+    # net = FCN8x(NUM_CLASSES)
+
+    # model = 'DeepLabV3'
+    # net = DeepLabV3(21)
+
+    model = 'Qnet'
+    net = ResNetUNet()
+
+
+
+
     model_path = './model_result/best_model_{}.mdl'.format(model)
 
 

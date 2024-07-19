@@ -59,7 +59,7 @@ def load_model(args):
     elif args.model == 'Uesnet50':
         model_name = 'Uesnet50'
         net = UesNet()
-    elif args.model == 'URestnet++':
+    elif args.model == 'Unet2+':
         model_name = 'URestnet++'
         net = NestedUResnet(block=BottleNeck, layers=[3, 4, 6, 3], num_classes=21)
     else:
