@@ -76,11 +76,8 @@ def train(args, model_name, net):
     # 构建网络
     optimizer = optim.Adam(net.parameters(), lr=args.init_lr, weight_decay=1e-4)
     criterion = nn.CrossEntropyLoss()
-<<<<<<< HEAD
+
     train_csv_dir = 'train.csv'
-=======
-    train_csv_dir = 'test.csv'
->>>>>>> a4655a9c122c79faeb1936ed784e79f924cacc3a
     val_csv_dir = 'val.csv'
     train_data = CustomDataset(train_csv_dir, args.input_height, args.input_width)
     train_dataloader = DataLoader(train_data, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers)
