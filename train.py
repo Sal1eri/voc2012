@@ -25,6 +25,8 @@ from u3plus.Qnet import ResNetUNet
 #   引用parser
 from CommandLine.train_parser import get_args_parser
 
+#   引用psp
+from model.PSPnet import PSPNet
 
 def load_model(args):
     if args.model == 'Unet':
@@ -47,10 +49,15 @@ def load_model(args):
         model_name = 'Unet3+_Sup'
         net = UNet_3Plus_DeepSup()
         print("using UNet3+_Sup")
-    else:
+    elif args.model == 'Qnet':
         model_name = 'Qnet'
         net = ResNetUNet()
         print("using ResNetUNet")
+    else:
+        model_name = 'PSPnet'
+        net = PSPNet(21)
+        print("using PSPnet")
+
 
     return model_name, net
 

@@ -86,3 +86,10 @@ class ResNetUNet(nn.Module):
         out = self.conv_last(x)
 
         return out
+
+if __name__ == "__main__":
+    from torchsummary import summary
+
+    net = ResNetUNet()
+    net.cuda()
+    summary(net, (3, 128, 128))

@@ -123,3 +123,9 @@ class UNet(nn.Module):
         x = self.up4(x, x1)
         logits = self.outc(x)
         return logits
+if __name__ == "__main__":
+    from torchsummary import summary
+
+    net = UNet(3,21)
+    net.cuda()
+    summary(net, (3, 128, 128))
