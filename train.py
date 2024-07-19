@@ -120,7 +120,7 @@ def train(args, model_name, net):
 
         train_loss /= len(train_data)
         acc, acc_cls, mean_iu, fwavacc, _, _, _, _ = label_accuracy_score(label_true.numpy(), label_pred.numpy(),
-                                                                          NUM_CLASSES)
+                                                                          args.n_classes)
 
         print(
             f'epoch: {e + 1}, train_loss: {train_loss:.4f}, acc: {acc:.4f}, acc_cls: {acc_cls:.4f}, mean_iu: {mean_iu:.4f}, fwavacc: {fwavacc:.4f}')
@@ -156,7 +156,7 @@ def train(args, model_name, net):
             val_loss /= len(val_data)
             val_acc, val_acc_cls, val_mean_iu, val_fwavacc, _, _, _, _ = label_accuracy_score(val_label_true.numpy(),
                                                                                               val_label_pred.numpy(),
-                                                                                              NUM_CLASSES)
+                                                                                              args.n_classes)
 
         print(
             f'epoch: {e + 1}, val_loss: {val_loss:.4f}, acc: {val_acc:.4f}, acc_cls: {val_acc_cls:.4f}, mean_iu: {val_mean_iu:.4f}, fwavacc: {val_fwavacc:.4f}')

@@ -14,7 +14,7 @@ def get_args_parser():
     parser.add_argument('--init_lr', default=1e-5, type=float, help='initial lr')
     parser.add_argument('--max_lr', default=1e-3, type=float, help='max lr')
     parser.add_argument('--weight_decay', default=1e-5, type=float, help='weight decay')
-    parser.add_argument('--nb_classes', default=21, type=int, help='number of the classification types')
+    parser.add_argument('--n_classes', default=21, type=int, help='number of the classification types')
     # CommandLine.add_argument('--output_dir', default='./output_dir', help='path where to save, empty for no saving')
     parser.add_argument('--device', default='cuda', help='device to use for training / testing')
     parser.add_argument('--num_workers', default=2, type=int,help='number of workers for dataloader')
