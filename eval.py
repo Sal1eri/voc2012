@@ -51,7 +51,7 @@ def main():
             # loss_soft_before = criterion(output, batchlabel)
             output = F.log_softmax(output, dim=1)
             # start_time1 = time.perf_counter()
-            # loss = criterion(output, batchlabel)
+            loss = criterion(output, batchlabel)
             # end_time1 = time.perf_counter()
             # print("log soft ",loss.item())
             # loss1t=end_time1-start_time1
