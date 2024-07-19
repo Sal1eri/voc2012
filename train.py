@@ -22,6 +22,7 @@ from u3plus.UNet_3Plus import UNet_3Plus
 from u3plus.UNet_3Plus import UNet_3Plus_DeepSup
 from u3plus.Qnet import ResNetUNet
 from u3plus.Ues50 import UesNet
+from u3plus.U2plusRes50 import NestedUResnet
 
 #   引用parser
 from CommandLine.train_parser import get_args_parser
@@ -58,6 +59,9 @@ def load_model(args):
     elif args.model == 'Uesnet50':
         model_name = 'Uesnet50'
         net = UesNet()
+    elif args.model == 'URestnet++':
+        model_name = 'URestnet++'
+        net = NestedUResnet(block=BottleNeck, layers=[3, 4, 6, 3], num_classes=21)
     else:
         model_name = 'PSPnet'
         net = PSPNet(21)
