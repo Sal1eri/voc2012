@@ -7,8 +7,9 @@ from torch import nn
 from torchvision import models
 import numpy as np
 
-pretrained_model=models.vgg16(pretrained=True) #用于 FCN32x FCN16x FCN8x
-pretrained_net = models.resnet34(pretrained=True) #用于 FCN8s
+pretrained_model = models.vgg16(pretrained=True)  # 用于 FCN32x FCN16x FCN8x
+pretrained_net = models.resnet34(pretrained=True)  # 用于 FCN8s
+
 
 def bilinear_kernel(in_channels, out_channels, kernel_size):
     '''
@@ -26,63 +27,75 @@ def bilinear_kernel(in_channels, out_channels, kernel_size):
     weight[range(in_channels), range(out_channels), :, :] = filt
     return torch.from_numpy(weight)
 
+
 class FCN32s(nn.Module):
-    def __init__(self,num_classes):
+    def __init__(self, num_classes):
         super(FCN32s, self).__init__()
 
-        self.feature=pretrained_model.features
+        self.feature = pretrained_model.features
 
-        self.conv=nn.Conv2d(512,num_classes, kernel_size=1, stride=1, padding=0)
-        self.upsample32x=nn.Sequential(
-            nn.ConvTranspose2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1, dilation=1, output_padding=1),
-            nn.ConvTranspose2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1, dilation=1, output_padding=1),
-            nn.ConvTranspose2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1, dilation=1, output_padding=1),
-            nn.ConvTranspose2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1, dilation=1, output_padding=1),
-            nn.ConvTranspose2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1, dilation=1, output_padding=1),
-        )
-        
-        for m in self.modules():
-            if isinstance(m,nn.ConvTranspose2d):
-                m.weight.data.copy_(bilinear_kernel(int(m.in_channels),int(m.out_channels),m.kernel_size[0]))
-
-    def forward(self,x):
-        x=self.feature(x) # 1/32
-        x=self.conv(x)
-        x=self.upsample32x(x)
-        return x
-
-class FCN16s(nn.Module):
-    def __init__(self,num_classes):
-        super(FCN16s, self).__init__()
-
-        self.feature_1=nn.Sequential(*list(pretrained_model.features.children())[:24])
-        self.feature_2=nn.Sequential(*list(pretrained_model.features.children())[24:])
-
-        self.conv_1=nn.Conv2d(512,num_classes,kernel_size=1,stride=1,padding=0)
-        self.conv_2=nn.Conv2d(512, num_classes, kernel_size=1, stride=1, padding=0)
-
-        self.upsample2x=nn.ConvTranspose2d(num_classes,num_classes,kernel_size=3,stride=2,padding=1,output_padding=1,dilation=1)
-        self.upsample16x=nn.Sequential(
-            nn.ConvTranspose2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1, dilation=1, output_padding=1),
-            nn.ConvTranspose2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1, dilation=1, output_padding=1),
-            nn.ConvTranspose2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1, dilation=1, output_padding=1),
-            nn.ConvTranspose2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1, dilation=1, output_padding=1),
+        self.conv = nn.Conv2d(512, num_classes, kernel_size=1, stride=1, padding=0)
+        self.upsample32x = nn.Sequential(
+            nn.ConvTranspose2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1, dilation=1,
+                               output_padding=1),
+            nn.ConvTranspose2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1, dilation=1,
+                               output_padding=1),
+            nn.ConvTranspose2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1, dilation=1,
+                               output_padding=1),
+            nn.ConvTranspose2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1, dilation=1,
+                               output_padding=1),
+            nn.ConvTranspose2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1, dilation=1,
+                               output_padding=1),
         )
 
         for m in self.modules():
-            if isinstance(m,nn.ConvTranspose2d):
-                m.weight.data.copy_(bilinear_kernel(m.in_channels,m.out_channels,m.kernel_size[0]))
+            if isinstance(m, nn.ConvTranspose2d):
+                m.weight.data.copy_(bilinear_kernel(int(m.in_channels), int(m.out_channels), m.kernel_size[0]))
 
     def forward(self, x):
-        x1=self.feature_1(x)
-        x2=self.feature_2(x1)
+        x = self.feature(x)  # 1/32
+        x = self.conv(x)
+        x = self.upsample32x(x)
+        return x
 
-        x1=self.conv_1(x1)
-        x2=self.conv_2(x2)
-        x2=self.upsample2x(x2)
-        x2+=x1
 
-        x2=self.upsample16x(x2)
+class FCN16s(nn.Module):
+    def __init__(self, num_classes):
+        super(FCN16s, self).__init__()
+
+        self.feature_1 = nn.Sequential(*list(pretrained_model.features.children())[:24])
+        self.feature_2 = nn.Sequential(*list(pretrained_model.features.children())[24:])
+
+        self.conv_1 = nn.Conv2d(512, num_classes, kernel_size=1, stride=1, padding=0)
+        self.conv_2 = nn.Conv2d(512, num_classes, kernel_size=1, stride=1, padding=0)
+
+        self.upsample2x = nn.ConvTranspose2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1,
+                                             output_padding=1, dilation=1)
+        self.upsample16x = nn.Sequential(
+            nn.ConvTranspose2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1, dilation=1,
+                               output_padding=1),
+            nn.ConvTranspose2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1, dilation=1,
+                               output_padding=1),
+            nn.ConvTranspose2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1, dilation=1,
+                               output_padding=1),
+            nn.ConvTranspose2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1, dilation=1,
+                               output_padding=1),
+        )
+
+        for m in self.modules():
+            if isinstance(m, nn.ConvTranspose2d):
+                m.weight.data.copy_(bilinear_kernel(m.in_channels, m.out_channels, m.kernel_size[0]))
+
+    def forward(self, x):
+        x1 = self.feature_1(x)
+        x2 = self.feature_2(x1)
+
+        x1 = self.conv_1(x1)
+        x2 = self.conv_2(x2)
+        x2 = self.upsample2x(x2)
+        x2 += x1
+
+        x2 = self.upsample16x(x2)
         return x2
 
 
@@ -94,38 +107,44 @@ class FCN8s(nn.Module):
         self.feature_2 = nn.Sequential(*list(pretrained_model.features.children())[17:24])
         self.feature_3 = nn.Sequential(*list(pretrained_model.features.children())[24:])
 
-        self.conv_1 = nn.Conv2d(512,num_classes, kernel_size=1, stride=1, padding=0)
-        self.conv_2=nn.Conv2d(256,num_classes,kernel_size=1, stride=1, padding=0)
-        self.conv_3=nn.Conv2d(512,num_classes, kernel_size=1, stride=1, padding=0)
+        self.conv_1 = nn.Conv2d(512, num_classes, kernel_size=1, stride=1, padding=0)
+        self.conv_2 = nn.Conv2d(256, num_classes, kernel_size=1, stride=1, padding=0)
+        self.conv_3 = nn.Conv2d(512, num_classes, kernel_size=1, stride=1, padding=0)
 
-        self.upsample2x_1 = nn.ConvTranspose2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1, output_padding=1, dilation=1)
-        self.upsample2x_2 = nn.ConvTranspose2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1, output_padding=1,dilation=1)
+        self.upsample2x_1 = nn.ConvTranspose2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1,
+                                               output_padding=1, dilation=1)
+        self.upsample2x_2 = nn.ConvTranspose2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1,
+                                               output_padding=1, dilation=1)
         self.upsample8x = nn.Sequential(
-            nn.ConvTranspose2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1, dilation=1, output_padding=1),
-            nn.ConvTranspose2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1, dilation=1, output_padding=1),
-            nn.ConvTranspose2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1, dilation=1, output_padding=1),
+            nn.ConvTranspose2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1, dilation=1,
+                               output_padding=1),
+            nn.ConvTranspose2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1, dilation=1,
+                               output_padding=1),
+            nn.ConvTranspose2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1, dilation=1,
+                               output_padding=1),
         )
 
         for m in self.modules():
             if isinstance(m, nn.ConvTranspose2d):
-                m.weight.data=bilinear_kernel(m.in_channels, m.out_channels, m.kernel_size[0])
+                m.weight.data = bilinear_kernel(m.in_channels, m.out_channels, m.kernel_size[0])
 
     def forward(self, x):
         x1 = self.feature_1(x)
         x2 = self.feature_2(x1)
-        x3=self.feature_3(x2)
+        x3 = self.feature_3(x2)
 
-        x2=self.conv_1(x2)
-        x3=self.conv_3(x3)
-        x3=self.upsample2x_1(x3)
-        x3+=x2
+        x2 = self.conv_1(x2)
+        x3 = self.conv_3(x3)
+        x3 = self.upsample2x_1(x3)
+        x3 += x2
 
-        x1=self.conv_2(x1)
-        x3=self.upsample2x_2(x3)
-        x3+=x1
+        x1 = self.conv_2(x1)
+        x3 = self.upsample2x_2(x3)
+        x3 += x1
 
-        x3=self.upsample8x(x3)
+        x3 = self.upsample8x(x3)
         return x3
+
 
 class FCN8x(nn.Module):
     def __init__(self, num_classes):
@@ -148,8 +167,7 @@ class FCN8x(nn.Module):
         self.upsample_2x = nn.ConvTranspose2d(num_classes, num_classes, 4, 2, 1, bias=False)
         self.upsample_2x.weight.data = bilinear_kernel(num_classes, num_classes, 4)  # 使用双线性 kernel
 
-
-    def loadIFExist(self,model_path):
+    def loadIFExist(self, model_path):
         model_list = os.listdir('./model_result')
 
         model_pth = os.path.basename(model_path)
@@ -157,6 +175,7 @@ class FCN8x(nn.Module):
         if model_pth in model_list:
             self.load_state_dict(torch.load(model_path))
             print("the latest model has been load")
+
     def forward(self, x):
         x = self.stage1(x)
         s1 = x  # 1/8
@@ -175,14 +194,10 @@ class FCN8x(nn.Module):
         return s
 
 
-
-
-
-
-
 if __name__ == "__main__":
     pass
-    from torchsummary import summary
+    # from torchsummary import summary
+
     fcn = FCN32s(3)
     # fcn.cuda(1)
     # summary(fcn,(3,128,128))
