@@ -174,6 +174,6 @@ class NestedUResnet(nn.Module):
 if __name__ == "__main__":
     from torchsummary import summary
 
-    net = NestedUResnet(block=BottleNeck,layers=[3,4,6,3],num_classes=21)
+    net = NestedUResnet(block=BasicBlock,layers=[3,4,6,3],num_classes=21)
     net.cuda()
     summary(net, (3, 128, 128))
