@@ -7,6 +7,8 @@ from history import ImageSwitcher
 import tkinter.font as tkfont
 import os
 from draw_colormap import create_color_map_image
+from overlap import overlay_images
+from parameters import *
 
 
 def mk_dir():
@@ -14,10 +16,14 @@ def mk_dir():
         os.makedirs('./user_results')
     if not os.path.exists('./user_results/history'):
         os.makedirs('./user_results/history')
+    if not os.path.exists('./user_results/overlap'):
+        os.makedirs('./user_results/overlap')
 
 
 class ImageViewer:
     def __init__(self, parent, image_path):
+        self.over_photo = None
+        self.over_image = None
         self.photo2 = None
         self.image2 = None
         self.root = tk.Toplevel()  # 使用 Toplevel 创建顶级窗口
@@ -25,6 +31,7 @@ class ImageViewer:
         self.root.geometry("900x600+320+150")
         self.parent = parent
         self.image_path = image_path
+        self.click_count = 0
         if not os.path.exists('./color_map.png'):
             create_color_map_image()
         self.color_map = Image.open('./color_map.png')
@@ -62,7 +69,7 @@ class ImageViewer:
         self.close.pack(side='right', padx=20)
 
         # 打开并加载图片
-        self.image = Image.open(image_path)
+        self.image = Image.open(self.image_path)
         self.image = self.image.resize((330, 330))
         # 创建 PhotoImage 对象
         self.photo = ImageTk.PhotoImage(self.image)
@@ -82,15 +89,32 @@ class ImageViewer:
         self.root.mainloop()  # 运行主循环，显示窗口
 
     def predict(self):
+
         model = self.selected_option.get()
-        messagebox.showinfo("选择的选项", f"你选择了：{model}")
+        if self.click_count == 0:
+            messagebox.showinfo("选择的选项", f"你选择了：{model}")
         pre_path = evaluate(self.image_path, model)
+        file_name = os.path.basename(pre_path)
+        overlap_path = OVERLAP_path+file_name
+        overlay_images(original_image_path=self.image_path, predicted_image_path=pre_path,
+                       output_image_path=overlap_path)
+
         # 打开并加载图片
-        self.image2 = Image.open(pre_path)
-        self.image2 = self.image2.resize((330, 330))
-        # 创建 PhotoImage 对象
-        self.photo2 = ImageTk.PhotoImage(self.image2)
-        self.label2.config(image=self.photo2)
+        over_image = Image.open(overlap_path)
+        over_image = over_image.resize((330, 330))
+        over_photo = ImageTk.PhotoImage(over_image)
+
+        image2 = Image.open(pre_path)
+        image2 = image2.resize((330, 330))
+        photo2 = ImageTk.PhotoImage(image2)
+
+        self.click_count += 1
+        if self.click_count % 2 == 1:
+            self.label2.config(image=photo2)
+            self.label2.image = photo2  # 这行代码确保图片对象不会被垃圾回收
+        else:
+            self.label2.config(image=over_photo)
+            self.label2.image = over_photo  # 这行代码确保图片对象不会被垃圾回收
 
 
 class StartWindow:

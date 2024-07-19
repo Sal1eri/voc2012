@@ -5,15 +5,14 @@ import torch
 import torchvision.transforms as transforms
 import os
 from model.DeepLab import DeepLabV3
-
-NUM_CLASSES = 21
+from parameters import *
 
 
 def evaluate(val_image_path, model_e):
     from utils.DataLoade import colormap
     import matplotlib.pyplot as plt
     from PIL import Image
-    model_path = './model_result/best_model_{}.mdl'.format(model_e)
+    model_path = MODEL_path+'best_model_{}.mdl'.format(model_e)
     if model_e == 'FCN8x':
         net = FCN8x(NUM_CLASSES)
     elif model_e == 'UNet':
@@ -48,11 +47,11 @@ def evaluate(val_image_path, model_e):
     ax[1].imshow(val_pre.squeeze())
     ax[0].axis('off')
     ax[1].axis('off')
-    save_path = './user_results/history/pic_{}_{}'.format(model_e, image_name)
+    save_path = HISTORY_PATH+'pic_{}_{}'.format(model_e, image_name)
     plt.savefig(save_path)
     plt.close()  # 关闭当前图形对象
     # plt.show()
     pre_img = Image.fromarray(val_pre.squeeze())
-    pre_path = './user_results/pic_{}_{}'.format(model_e, image_name)
+    pre_path = PRE_path+'pic_{}_{}'.format(model_e, image_name)
     pre_img.save(pre_path)
     return pre_path
