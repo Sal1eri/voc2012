@@ -11,6 +11,8 @@ import numpy as np
 
 import time
 
+from model.DeepLab import DeepLabV3
+
 BATCH_SIZE = 16
 INPUT_WIDTH = 320
 INPUT_HEIGHT = 320
@@ -24,8 +26,13 @@ def main():
     val_dataloader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
 
     model = 'FCN8x'
+    # model = 'DeepLabV3'
+
     model_path = './model_result/best_model_{}.mdl'.format(model)
     net = FCN8x(NUM_CLASSES)
+
+    # net = DeepLabV3(21)
+
     net.load_state_dict(torch.load(model_path, map_location='cuda'))
     net.cuda()
     net.eval()

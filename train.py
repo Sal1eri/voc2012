@@ -20,6 +20,7 @@ import time
 #   引用u3+模型
 from u3plus.UNet_3Plus import UNet_3Plus
 from u3plus.UNet_3Plus import UNet_3Plus_DeepSup
+from u3plus.Qnet import ResNetUNet
 
 #   引用parser
 from CommandLine.train_parser import get_args_parser
@@ -46,6 +47,10 @@ def load_model(args):
         model_name = 'Unet3+_Sup'
         net = UNet_3Plus_DeepSup()
         print("using UNet3+_Sup")
+    else:
+        model_name = 'Qnet'
+        net = ResNetUNet()
+        print("using ResNetUNet")
 
     return model_name, net
 
@@ -166,5 +171,5 @@ if __name__ == "__main__":
     args = get_args_parser()
     args = args.parse_args()
     model_name, net = load_model(args)
-    print(args.init_lr)
-    # train(args,model_name,net)
+    # print(args.init_lr)
+    train(args,model_name,net)

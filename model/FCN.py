@@ -195,11 +195,10 @@ class FCN8x(nn.Module):
 
 
 if __name__ == "__main__":
-    pass
-    # from torchsummary import summary
+    from torchsummary import summary
 
-    fcn = FCN32s(3)
-    # fcn.cuda(1)
-    # summary(fcn,(3,128,128))
+    fcn = FCN8x(21)
+    fcn.cuda()
+    summary(fcn,(3,128,128))
     # pretrained_model.cuda(1)
     # summary(pretrained_model,(3,128,128))

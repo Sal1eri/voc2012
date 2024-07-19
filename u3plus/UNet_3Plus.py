@@ -21,7 +21,7 @@ class UNet_3Plus(nn.Module):
         self.is_batchnorm = is_batchnorm
         self.feature_scale = feature_scale
 
-        filters = [8, 16, 32, 64, 128]
+        filters = [32, 64, 128, 256, 512]
 
         ## -------------Encoder--------------
         self.conv1 = unetConv2(self.in_channels, filters[0], self.is_batchnorm)
@@ -450,6 +450,7 @@ class UNet_3Plus_DeepSup(nn.Module):
                 init_weights(m, init_type='kaiming')
             elif isinstance(m, nn.BatchNorm2d):
                 init_weights(m, init_type='kaiming')
+
     def loadIFExist(self, model_path):
         model_list = os.listdir('./model_result')
 
@@ -809,3 +810,11 @@ class UNet_3Plus_DeepSup_CGM(nn.Module):
         d5 = self.dotProduct(d5, cls_branch_max)
 
         return torch.sigmoid(d1), torch.sigmoid(d2), torch.sigmoid(d3), torch.sigmoid(d4), torch.sigmoid(d5)
+
+
+if __name__ == "__main__":
+    from torchsummary import summary
+
+    net = UNet_3Plus()
+    net.cuda()
+    summary(net, (3, 128, 128))
