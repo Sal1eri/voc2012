@@ -64,9 +64,6 @@ elif args.model == 'Unet3+_Sup':
 model_path = './model_result/best_model_{}.mdl'.format(model)
 result_path = './result_{}.txt'.format(model)
 
-
-
-
 if os.path.exists(result_path):
     os.remove(result_path)
 
@@ -107,7 +104,7 @@ def train():
         label_true = torch.LongTensor()
         label_pred = torch.LongTensor()
         #   train的进度条
-        with tqdm(total=len(train_dataloader), desc=f'{e+1}/{epoch} epoch Train_Progress') as pb_train:
+        with tqdm(total=len(train_dataloader), desc=f'{e + 1}/{epoch} epoch Train_Progress') as pb_train:
             for i, (batchdata, batchlabel) in enumerate(train_dataloader):
                 if use_gpu:
                     batchdata, batchlabel = batchdata.cuda(), batchlabel.cuda()
@@ -128,9 +125,9 @@ def train():
                 label_pred = torch.cat((label_pred, pred), dim=0)
                 pb_train.update(1)
 
-
         train_loss /= len(train_data)
-        acc, acc_cls, mean_iu, fwavacc, _, _, _, _ = label_accuracy_score(label_true.numpy(), label_pred.numpy(), NUM_CLASSES)
+        acc, acc_cls, mean_iu, fwavacc, _, _, _, _ = label_accuracy_score(label_true.numpy(), label_pred.numpy(),
+                                                                          NUM_CLASSES)
 
         print(
             f'epoch: {e + 1}, train_loss: {train_loss:.4f}, acc: {acc:.4f}, acc_cls: {acc_cls:.4f}, mean_iu: {mean_iu:.4f}, fwavacc: {fwavacc:.4f}')
@@ -144,7 +141,7 @@ def train():
         val_loss = 0.0
         val_label_true = torch.LongTensor()
         val_label_pred = torch.LongTensor()
-        with tqdm(total=len(val_dataloader), desc=f'{e+1}/{epoch} epoch Val_Progress') as pb_val:
+        with tqdm(total=len(val_dataloader), desc=f'{e + 1}/{epoch} epoch Val_Progress') as pb_val:
             with torch.no_grad():
                 for i, (batchdata, batchlabel) in enumerate(val_dataloader):
                     if use_gpu:
@@ -165,7 +162,8 @@ def train():
 
             val_loss /= len(val_data)
             val_acc, val_acc_cls, val_mean_iu, val_fwavacc, _, _, _, _ = label_accuracy_score(val_label_true.numpy(),
-                                                                                  val_label_pred.numpy(), NUM_CLASSES)
+                                                                                              val_label_pred.numpy(),
+                                                                                              NUM_CLASSES)
 
         print(
             f'epoch: {e + 1}, val_loss: {val_loss:.4f}, acc: {val_acc:.4f}, acc_cls: {val_acc_cls:.4f}, mean_iu: {val_mean_iu:.4f}, fwavacc: {val_fwavacc:.4f}')

@@ -72,6 +72,7 @@ def evaluate(val_image_path, model_e):
         os.makedirs(save_path)
 
     plt.savefig(save_format)
+
     # plt.show()
     return save_format
 
