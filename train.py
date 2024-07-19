@@ -21,12 +21,14 @@ import time
 from u3plus.UNet_3Plus import UNet_3Plus
 from u3plus.UNet_3Plus import UNet_3Plus_DeepSup
 from u3plus.Qnet import ResNetUNet
+from u3plus.Ues50 import UesNet
 
 #   引用parser
 from CommandLine.train_parser import get_args_parser
 
 #   引用psp
 from model.PSPnet import PSPNet
+
 
 def load_model(args):
     if args.model == 'Unet':
@@ -53,6 +55,9 @@ def load_model(args):
         model_name = 'Qnet'
         net = ResNetUNet()
         print("using ResNetUNet")
+    elif args.model == 'Uesnet50':
+        model_name = 'Uesnet50'
+        net = UesNet()
     else:
         model_name = 'PSPnet'
         net = PSPNet(21)
