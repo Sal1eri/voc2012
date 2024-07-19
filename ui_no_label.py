@@ -1,100 +1,85 @@
 import tkinter as tk
 from PIL import Image, ImageTk
 from tkinter import filedialog
-import numpy as np
-from model.FCN import FCN32s, FCN8x
-from model.Unet import UNet
-import torch
-import torchvision.transforms as transforms
-import os
+from evaluate import evaluate
 from tkinter import messagebox
-from model.DeepLab import DeepLabV3
 from history import ImageSwitcher
-
-GPU_ID = 0
-INPUT_WIDTH = 320
-INPUT_HEIGHT = 320
-BATCH_SIZE = 32
-NUM_CLASSES = 21
-LEARNING_RATE = 1e-3
-torch.cuda.set_device(GPU_ID)
+import tkinter.font as tkfont
+import os
+from draw_colormap import create_color_map_image
+from overlap import overlay_images
+from parameters import *
 
 
-def evaluate(val_image_path, model_e):
-    from utils.DataLoade import colormap
-    import matplotlib.pyplot as plt
-    from PIL import Image
-    model_path = './model_result/best_model_{}.mdl'.format(model_e)
-    if model_e == 'FCN8x':
-        net = FCN8x(NUM_CLASSES)
-    elif model_e == 'UNet':
-        net = UNet(3, NUM_CLASSES)
-    elif model_e == 'DeepLabV3':
-        net = DeepLabV3(NUM_CLASSES)
-    else:
-        net = FCN8x(NUM_CLASSES)
-    image_name = os.path.basename(val_image_path)
-    image_name = image_name.replace(".jpg", ".png")
-    val_image = Image.open(val_image_path)
-    tfs = transforms.Compose([
-        transforms.Resize((320, 320)),  # 调整图像大小
-        transforms.ToTensor(),  # 转换为张量
-        transforms.Normalize([.485, .456, .406], [.229, .224, .225])  # 归一化
-    ])
-    input_image = tfs(val_image).unsqueeze(0)
-    # 加载模型参数并移至GPU
-    net.load_state_dict(torch.load(model_path, map_location='cuda'))
-    net.cuda()
-
-    # 进行推理
-    with torch.no_grad():
-        out = net(input_image.cuda())
-        pred = out.argmax(dim=1).squeeze().cpu().numpy()
-        pred = np.expand_dims(pred, axis=0)
-        colormap = np.array(colormap).astype('uint8')
-        val_pre = colormap[pred]
-
-    fig, ax = plt.subplots(1, 2, figsize=(10, 5))
-    ax[0].imshow(val_image)
-    ax[1].imshow(val_pre.squeeze())
-    ax[0].axis('off')
-    ax[1].axis('off')
-    save_path = './user_results/history/pic_{}_{}'.format(model_e, image_name)
-    plt.savefig(save_path)
-    plt.close()  # 关闭当前图形对象
-    # plt.show()
-
-    fig, ax = plt.subplots(1, 1, figsize=(5, 5))
-    ax.imshow(val_pre.squeeze())
-    ax.axis('off')
-    fig.patch.set_facecolor('none')
-    pre_path = './user_results/pic_{}_{}'.format(model_e, image_name)
-    plt.savefig(pre_path)
-    return pre_path
+def mk_dir():
+    if not os.path.exists('./user_results'):
+        os.makedirs('./user_results')
+    if not os.path.exists('./user_results/history'):
+        os.makedirs('./user_results/history')
+    if not os.path.exists('./user_results/overlap'):
+        os.makedirs('./user_results/overlap')
 
 
 class ImageViewer:
-    def __init__(self, parent, image_path, model):
+    def __init__(self, parent, image_path):
+        self.over_photo = None
+        self.over_image = None
+        self.photo2 = None
+        self.image2 = None
         self.root = tk.Toplevel()  # 使用 Toplevel 创建顶级窗口
         self.root.title("Image Viewer")  # 设置窗口标题
+        self.root.geometry("900x600+320+150")
         self.parent = parent
         self.image_path = image_path
-        self.model = model
-        # 打开并加载图片
-        self.image = Image.open(image_path)
+        self.click_count = 0
+        if not os.path.exists('./color_map.png'):
+            create_color_map_image()
+        self.color_map = Image.open('./color_map.png')
+        self.color_photo = ImageTk.PhotoImage(self.color_map)
 
+        self.color_label = tk.Label(self.root, image=self.color_photo)
+        self.color_label.pack(side='left', padx=0)
+
+        # 创建顶部框架
+        top_frame = tk.Frame(self.root)
+        top_frame.pack(side='top', pady=0, fill='y', expand=True)
+
+        # 创建底部框架
+        bottom_frame = tk.Frame(self.root)
+        bottom_frame.pack(side='bottom', pady=0, fill='y', expand=True)
+
+        # 定义选项列表
+        options = ["FCN8x", "UNet", "DeepLabV3"]
+
+        # 创建变量存储选择结果
+        self.selected_option = tk.StringVar(bottom_frame)
+        self.selected_option.set(options[0])  # 设置默认选项
+
+        # 创建下拉选择框
+        option_menu = tk.OptionMenu(bottom_frame, self.selected_option, *options)
+        option_menu.pack(side='left', padx=20)
+
+        # 创建Button
+        self.predict = tk.Button(bottom_frame, text="predict", command=self.predict, width=20, height=1,
+                                 bg='#BDBDBD')
+        self.predict.pack(side='left', padx=20)
+
+        self.close = tk.Button(bottom_frame, text="close", command=self.close_window, width=20, height=1,
+                               bg='#BDBDBD')
+        self.close.pack(side='right', padx=20)
+
+        # 打开并加载图片
+        self.image = Image.open(self.image_path)
+        self.image = self.image.resize((330, 330))
         # 创建 PhotoImage 对象
         self.photo = ImageTk.PhotoImage(self.image)
 
         # 创建 Label 组件来显示图片
-        self.label = tk.Label(self.root, image=self.photo)
-        self.label.pack()  # 将 Label 放置在窗口中央
-
-        self.predict = tk.Button(self.root, text="predict", command=self.predict)
-        self.predict.pack()
-
-        self.close = tk.Button(self.root, text="close", command=self.close_window)
-        self.close.pack()
+        self.label = tk.Label(top_frame, image=self.photo)
+        self.label.pack(side='left', padx=10)
+        # 创建 Label2 组件来显示预测图片
+        self.label2 = tk.Label(top_frame)
+        self.label2.pack(side='right', padx=10)
 
     def close_window(self):
         self.root.destroy()
@@ -104,66 +89,62 @@ class ImageViewer:
         self.root.mainloop()  # 运行主循环，显示窗口
 
     def predict(self):
-        self.root.withdraw()
-        image_window = ImageWindow(parent=self.root, image_path=self.image_path,
-                                   pre_path=evaluate(self.image_path, self.model))
-        image_window.show()
 
+        model = self.selected_option.get()
+        if self.click_count == 0:
+            messagebox.showinfo("选择的选项", f"你选择了：{model}")
+        pre_path = evaluate(self.image_path, model)
+        file_name = os.path.basename(pre_path)
+        overlap_path = OVERLAP_path+file_name
+        overlay_images(original_image_path=self.image_path, predicted_image_path=pre_path,
+                       output_image_path=overlap_path)
 
-class ImageWindow:
-    def __init__(self, parent, image_path, pre_path):
-        self.root = tk.Toplevel()  # 使用 Toplevel 创建顶级窗口
-        self.parent = parent
-        self.root.title("Image Switcher")
-        # self.root.geometry(f"{width}x{height}")
-
-        self.image_path1 = image_path
-        self.image_path2 = pre_path
-
-        # 加载并显示图片
-        self.load_images()
-
-        close_button = tk.Button(self.root, text="Close", command=self.close_window)
-        close_button.pack()
-
-    def load_images(self):
         # 打开并加载图片
-        image1 = Image.open(self.image_path1)
-        image2 = Image.open(self.image_path2)
+        over_image = Image.open(overlap_path)
+        over_image = over_image.resize((330, 330))
+        over_photo = ImageTk.PhotoImage(over_image)
 
-        # 将图片转换为 tkinter 可用的对象
-        self.tk_image1 = ImageTk.PhotoImage(image1)
-        self.tk_image2 = ImageTk.PhotoImage(image2)
+        image2 = Image.open(pre_path)
+        image2 = image2.resize((330, 330))
+        photo2 = ImageTk.PhotoImage(image2)
 
-        # 在窗口中显示图片
-        self.label1 = tk.Label(self.root, image=self.tk_image1)
-        self.label1.pack(side=tk.LEFT, padx=10, pady=10)  # 左侧显示，设置间距
-
-        self.label2 = tk.Label(self.root, image=self.tk_image2)
-        self.label2.pack(side=tk.RIGHT, padx=10, pady=10)  # 右侧显示，设置间距
-
-    def close_window(self):
-        self.root.destroy()  # Destroy the current window
-        self.parent.deiconify()  # Show the parent window
-
-    def show(self):
-        self.root.mainloop()  # 运行主循环，显示窗口
+        self.click_count += 1
+        if self.click_count % 2 == 1:
+            self.label2.config(image=photo2)
+            self.label2.image = photo2  # 这行代码确保图片对象不会被垃圾回收
+        else:
+            self.label2.config(image=over_photo)
+            self.label2.image = over_photo  # 这行代码确保图片对象不会被垃圾回收
 
 
 class StartWindow:
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("Start Window")
-        self.root.geometry("300x300")
-        self.selected_option = 'FCN8x'
-        start_button = tk.Button(self.root, text="Select Picture", command=self.open_image)
-        start_button.pack(pady=20)
-        model_button = tk.Button(self.root, text='Choose Model', command=self.choose_model)
-        model_button.pack(pady=20)
-        close_button = tk.Button(self.root, text='Close', command=self.close_window)
-        close_button.pack(pady=20)
-        his_button = tk.Button(self.root, text='View History', command=self.view_his)
-        his_button.pack(pady=20)
+        self.root.configure(bg='#BDBDBD')
+        self.root.geometry("400x210+620+260")
+        label_font = tkfont.Font(size=25, weight='bold', family='Tahoma')
+        title_label = tk.Label(self.root, text="Welcome", font=label_font, fg='white', bg='#BDBDBD')
+        title_label.pack(pady=15)
+
+        # 创建底部框架
+        bottom_frame = tk.Frame(self.root)
+        bottom_frame.pack(side='bottom', pady=0)
+        bottom_frame.configure(bg='#BDBDBD')
+        # 创建顶部框架
+        top_frame = tk.Frame(self.root)
+        top_frame.pack(side='bottom', pady=0)
+        top_frame.configure(bg='#BDBDBD')
+
+        custom_font = tkfont.Font(size=9, weight='bold', family='Tahoma')
+        his_button = tk.Button(bottom_frame, text='View History', command=self.view_his, width=20, height=2,
+                               font=custom_font, bg='#9E9E9E', fg='white')
+        start_button = tk.Button(top_frame, text="Select Picture", command=self.open_image, width=20, height=2,
+                                 font=custom_font, bg='#9E9E9E', fg='white')
+
+        start_button.pack(pady=10, side='left', padx=15)
+
+        his_button.pack(pady=10, side='left', padx=15)
 
     def view_his(self):
         self.root.withdraw()
@@ -174,35 +155,14 @@ class StartWindow:
         file_path = filedialog.askopenfilename()
         if file_path:
             self.root.withdraw()
-            image_viewer = ImageViewer(image_path=file_path, parent=self.root, model=self.selected_option)
+            image_viewer = ImageViewer(image_path=file_path, parent=self.root)
             image_viewer.show()  # 显示 ImageViewer 窗口
-
-    def close_window(self):
-        self.root.destroy()
 
     def show(self):
         self.root.mainloop()
 
-    def choose_model(self):
-        def select_option(opt):
-            # 更新选择的选项
-            self.selected_option = opt
-            # 显示选择的选项
-            messagebox.showinfo("选择的选项", f"你选择了：{opt}")
-            # 关闭选择窗口
-            selection_window.destroy()
-
-        # 创建一个新的选择窗口
-        selection_window = tk.Toplevel(self.root)
-        selection_window.title("选择窗口")
-
-        # 创建选项按钮
-        options = ["FCN8x", "UNet", "DeepLabV3"]
-        for option in options:
-            button = tk.Button(selection_window, text=option, command=lambda opt=option: select_option(opt))
-            button.pack(pady=5)
-
 
 if __name__ == "__main__":
+    mk_dir()
     app = StartWindow()
     app.show()

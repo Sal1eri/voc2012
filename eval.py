@@ -84,7 +84,8 @@ def main():
         #   val_fwavacc
 
         print(
-            f'val_loss: {val_loss:.4f}, acc: {val_acc:.4f}, acc_cls: {val_acc_cls:.4f}, mean_iu: {val_mean_iu:.4f}, fwavacc: {val_fwavacc:.4f}, mean_dice: {mean_dice:.4f}')
+            f'val_loss: {val_loss:.4f}, acc: {val_acc:.4f}, acc_cls: {val_acc_cls:.4f}, '
+            f'mean_iu: {val_mean_iu:.4f}, fwavacc: {val_fwavacc:.4f}, mean_dice: {mean_dice:.4f}')
 
     classes = ['background', 'aeroplane', 'bicycle', 'bird', 'boat',
                'bottle', 'bus', 'car', 'cat', 'chair', 'cow', 'diningtable',

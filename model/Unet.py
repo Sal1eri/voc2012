@@ -3,6 +3,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import os
 
 
 class DoubleConv(nn.Module):
@@ -50,9 +51,17 @@ class Up(nn.Module):
             self.up = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
             self.conv = DoubleConv(in_channels, out_channels, in_channels // 2)
         else:
-            self.up = nn.ConvTranspose2d(in_channels , in_channels // 2, kernel_size=2, stride=2)
+            self.up = nn.ConvTranspose2d(in_channels, in_channels // 2, kernel_size=2, stride=2)
             self.conv = DoubleConv(in_channels, out_channels)
 
+    def loadIFExist(self, model_path):
+        model_list = os.listdir('./model_result')
+
+        model_pth = os.path.basename(model_path)
+
+        if model_pth in model_list:
+            self.load_state_dict(torch.load(model_path))
+            print("the latest model has been load")
 
     def forward(self, x1, x2):
         x1 = self.up(x1)
@@ -81,7 +90,6 @@ class OutConv(nn.Module):
 """ Full assembly of the parts to form the complete network """
 
 import torch.nn.functional as F
-
 
 
 class UNet(nn.Module):
@@ -115,4 +123,3 @@ class UNet(nn.Module):
         x = self.up4(x, x1)
         logits = self.outc(x)
         return logits
-
