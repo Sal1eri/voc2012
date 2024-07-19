@@ -9,6 +9,8 @@ from utils.eval_tool import label_accuracy_score
 
 import numpy as np
 
+import time
+
 BATCH_SIZE = 16
 INPUT_WIDTH = 320
 INPUT_HEIGHT = 320
@@ -34,6 +36,7 @@ def main():
 
     pbar = tqdm(total=len(val_dataloader))
     criterion = torch.nn.CrossEntropyLoss()
+    criterion2 = torch.nn.NLLLoss()
 
     val_loss = 0.0
     val_label_true = torch.LongTensor()
@@ -45,8 +48,24 @@ def main():
                 batchdata, batchlabel = batchdata.cuda(), batchlabel.cuda()
 
             output = net(batchdata)
+            # loss_soft_before = criterion(output, batchlabel)
             output = F.log_softmax(output, dim=1)
-            loss = criterion(output, batchlabel)
+            # start_time1 = time.perf_counter()
+            # loss = criterion(output, batchlabel)
+            # end_time1 = time.perf_counter()
+            # print("log soft ",loss.item())
+            # loss1t=end_time1-start_time1
+
+            # start_time2 = time.perf_counter()
+            # loss2 = criterion2(output,batchlabel)
+            # end_time2 = time.perf_counter()
+            # loss2t=end_time2-start_time2
+            # ratio = loss1t/loss2t
+            # print("NLLos",loss2.item())
+            # input = F.log_softmax(output, dim=1)
+            # loss3 = criterion2(input, batchlabel)
+
+
             pred = output.argmax(dim=1).squeeze().data.cpu()
             real = batchlabel.data.cpu()
             val_loss += loss.cpu().item() * batchlabel.size(0)
@@ -76,7 +95,6 @@ def main():
     for name, prob in zip(classes, cls_iou):
         print(name + " : " + str(prob))
     print("=============================")
-    print(np.nanmean(cls_iou))
 
 
 if __name__ == '__main__':

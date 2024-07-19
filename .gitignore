@@ -8,6 +8,7 @@ data/
 pretrained_models/
 model_result/*
 pic_results/*
+/model_result
 .idea/
 __pycached__/
 user_results/

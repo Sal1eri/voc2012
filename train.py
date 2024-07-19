@@ -19,17 +19,19 @@ import time
 
 #   引用u3+模型
 from u3plus.UNet_3Plus import UNet_3Plus
+from u3plus.UNet_3Plus import UNet_3Plus_DeepSup
 
 parser = argparse.ArgumentParser(description="choose the model")
-parser.add_argument('-m', '--model', default='FCN', type=str, help="输入模型名字",
-                    choices=['Unet', 'FCN', 'Deeplab', 'Unet3+'])
+parser.add_argument('-m','--model', default='FCN' ,type= str, help= "输入模型名字",
+                    choices = ['Unet','FCN','Deeplab','Unet3+','Unet3+_Sup'])
 parser.add_argument('-g', '--gpu', default=0, type=int, help="输入所需GPU")
 args = parser.parse_args()
 
 GPU_ID = args.gpu
 INPUT_WIDTH = 320
 INPUT_HEIGHT = 320
-BATCH_SIZE = 4
+BATCH_SIZE = 2
+
 NUM_CLASSES = 21
 LEARNING_RATE = 1e-3
 epoch = 120
@@ -46,6 +48,11 @@ elif args.model == "Deeplab":
 elif args.model == 'Unet3+':
     model = 'Unet3+'
     net = UNet_3Plus()
+elif args.model == 'Unet3+_Sup':
+    model = 'Unet3+_Sup'
+    net = UNet_3Plus_DeepSup()
+
+
 # -------------------- 生成csv ------------------
 # DATA_ROOT =  './data/'
 # image = os.path.join(DATA_ROOT,'JPEGImages')
@@ -61,6 +68,7 @@ if os.path.exists(result_path):
     os.remove(result_path)
 
 train_csv_dir = 'train.csv'
+
 val_csv_dir = 'val.csv'
 train_data = CustomDataset(train_csv_dir, INPUT_WIDTH, INPUT_HEIGHT)
 train_dataloader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
@@ -87,7 +95,7 @@ def train():
     best_score = 0.0
     start_time = time.time()  # 开始训练的时间
 
-    net.loadIFExist(model_path)
+    #net.loadIFExist(model_path)
 
     for e in range(epoch):
         net.train()
