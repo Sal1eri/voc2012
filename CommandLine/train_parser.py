@@ -6,7 +6,7 @@ def get_args_parser():
     parser.add_argument('-m', '--model', default='Qnet', type=str, help="input model name",
                         choices=['Unet', 'FCN', 'Deeplab', 'Unet3+', 'Unet3+_Sup','Qnet','PSPnet']
                         )
-    parser.add_argument('--batch_size', '-b', default=2, type=int, help='Batch size for training')
+    parser.add_argument('--batch_size', '-b', default=4, type=int, help='Batch size for training')
     parser.add_argument('--epochs', '-e', default=10, type=int,help='total epochs for training')
     parser.add_argument('--input_height', default=320, type=int,help='input height for resize')
     parser.add_argument('--input_width', default=320, type=int,help='input width for resize')
